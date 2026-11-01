@@ -66,6 +66,19 @@ jobs:
           files: Teksos-${{ env.SURUM }}.apk
           body: Telefona kurulacak dosya asagida (Teksos-${{ env.SURUM }}.apk).
 
+      - name: APK dalina yaz
+        run: |
+          git config user.name "derleme"
+          git config user.email "derleme@users.noreply.github.com"
+          cp Teksos-${SURUM}.apk /tmp/Teksos.apk
+          git checkout --orphan apk-son
+          git rm -rf --cached . >/dev/null
+          cp /tmp/Teksos.apk Teksos.apk
+          echo "${SURUM} (derleme ${{ github.run_number }})" > surum.txt
+          git add -f Teksos.apk surum.txt
+          git commit -m "APK ${SURUM} #${{ github.run_number }}"
+          git push -f origin apk-son
+
       - name: Hata kaydi
         if: failure()
         run: |
