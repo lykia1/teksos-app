@@ -39,6 +39,9 @@ import com.teksosdoner.app.Api
 import com.teksosdoner.app.Bildirim
 import com.teksosdoner.app.Oturum
 
+/** Sekme dışındaki yerli ekranlar (Menü'den açılır). */
+private val YerliEkranlar = setOf("mesai", "gider", "stok", "gunsonu", "musteriler", "personeller", "panel", "raporlar", "patron", "siparisler", "kurye")
+
 private data class Sekme(val rota: String, val ad: String, val ikon: ImageVector)
 
 /** Web sayfasını uygulama içinde açan rota. */
@@ -124,16 +127,27 @@ fun AnaEkran() {
             }
             composable("raporlar") { RaporlarEkrani() }
             composable("kurye") { KuryeEkrani() }
-            composable("panel") { WebEkrani(Api.sunucu + "personel_panel.php", "Panelim", geri = null) }
+            composable("panel") {
+                val geriDon: () -> Unit = { nav.popBackStack() }
+                PanelEkrani(geri = if (sekmeler.any { t -> t.rota == "panel" }) null else geriDon, webAc = { u, b -> nav.webAc(u, b) })
+            }
+            composable("mesai") { MesaiEkrani(geri = { nav.popBackStack() }) }
+            composable("gider") { GiderEkrani(geri = { nav.popBackStack() }) }
+            composable("stok") { StokEkrani(geri = { nav.popBackStack() }) }
+            composable("gunsonu") { GunSonuEkrani(geri = { nav.popBackStack() }) }
+            composable("musteriler") { MusterilerEkrani(geri = { nav.popBackStack() }) }
+            composable("personeller") { PersonellerEkrani(geri = { nav.popBackStack() }) }
             composable("diger") {
                 DigerEkrani(ac = { yerli, url, ad ->
-                    if (yerli != null && sekmeler.any { s -> s.rota == yerli }) {
-                        nav.navigate(yerli) {
+                    when {
+                        yerli != null && sekmeler.any { s -> s.rota == yerli } -> nav.navigate(yerli) {
                             popUpTo(nav.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
-                    } else nav.webAc(url, ad)
+                        yerli != null && yerli in YerliEkranlar -> nav.navigate(yerli) { launchSingleTop = true }
+                        else -> nav.webAc(url, ad)
+                    }
                 })
             }
             composable(
