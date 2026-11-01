@@ -32,7 +32,13 @@ public class TeksosPlugin extends Plugin {
     @PluginMethod
     public void bilgi(PluginCall call) {
         JSObject r = new JSObject();
-        r.put("surum", BuildConfig.VERSION_NAME);
+        String surum = "";
+        try {
+            surum = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            // sürüm okunamadı
+        }
+        r.put("surum", surum);
         r.put("konum", KonumServisi.calisiyor);
         PowerManager pm = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
         r.put("pilSerbest", pm != null && pm.isIgnoringBatteryOptimizations(getContext().getPackageName()));
