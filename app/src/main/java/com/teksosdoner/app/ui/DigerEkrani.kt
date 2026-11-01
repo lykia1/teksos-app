@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.SyncAlt
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -82,7 +83,7 @@ private val Ikonlar: Map<String, ImageVector> = mapOf(
     "mesai" to Icons.Filled.Schedule, "vardiya" to Icons.Filled.CalendarMonth, "avans" to Icons.Filled.AccountBalance,
     "hijyen" to Icons.Filled.CleaningServices, "bildirim" to Icons.Filled.Campaign, "ayarlar" to Icons.Filled.Settings,
     "subeler" to Icons.Filled.Storefront, "entegrasyon" to Icons.Filled.Hub, "yemekpos" to Icons.Filled.SyncAlt,
-    "islemler" to Icons.Filled.History, "odeme" to Icons.Filled.CreditCard, "masalar" to Icons.Filled.Chair,
+    "islemler" to Icons.Filled.History, "odeme" to Icons.Filled.CreditCard, "masalar" to Icons.Filled.Chair, "kapanis" to Icons.Filled.TaskAlt,
 )
 
 private val GrupRenk = mapOf(

@@ -40,7 +40,9 @@ import com.teksosdoner.app.Bildirim
 import com.teksosdoner.app.Oturum
 
 /** Sekme dışındaki yerli ekranlar (Menü'den açılır). */
-private val YerliEkranlar = setOf("mesai", "gider", "stok", "gunsonu", "musteriler", "personeller", "panel", "raporlar", "patron", "siparisler", "kurye")
+private val YerliEkranlar = setOf("mesai", "gider", "stok", "gunsonu", "musteriler", "personeller", "panel", "raporlar", "patron", "siparisler", "kurye",
+    "y_urunler", "y_kategoriler", "y_secenekler", "y_kampanyalar", "y_vardiya", "y_maas", "y_hijyen", "y_doner", "y_duyurular", "y_kuryeler",
+    "y_islemler", "y_odeme", "y_masalar", "y_subeler", "y_yemekpos", "y_entegrasyon", "y_muhasebe", "y_ayarlar", "y_kapanis")
 
 private data class Sekme(val rota: String, val ad: String, val ikon: ImageVector)
 
@@ -137,6 +139,27 @@ fun AnaEkran() {
             composable("gunsonu") { GunSonuEkrani(geri = { nav.popBackStack() }) }
             composable("musteriler") { MusterilerEkrani(geri = { nav.popBackStack() }) }
             composable("personeller") { PersonellerEkrani(geri = { nav.popBackStack() }) }
+            val g: () -> Unit = { nav.popBackStack() }
+            composable("y_urunler") { UrunlerEkrani(geri = g, ac = { nav.navigate("y_urun/$it") }) }
+            composable("y_urun/{id}", arguments = listOf(navArgument("id") { type = NavType.IntType })) { UrunDetayEkrani(it.arguments?.getInt("id") ?: 0, geri = g) }
+            composable("y_kategoriler") { KategorilerEkrani(g) }
+            composable("y_secenekler") { SeceneklerEkrani(g) }
+            composable("y_kampanyalar") { KampanyalarEkrani(g) }
+            composable("y_vardiya") { VardiyaEkrani(g) }
+            composable("y_maas") { MaasEkrani(g) }
+            composable("y_hijyen") { HijyenEkrani(g) }
+            composable("y_kapanis") { KapanisEkrani(g) }
+            composable("y_duyurular") { DuyurularEkrani(g) }
+            composable("y_kuryeler") { KuryelerEkrani(g) }
+            composable("y_doner") { DonerEkrani(g) }
+            composable("y_masalar") { MasalarEkrani(g) }
+            composable("y_islemler") { IslemlerEkrani(g) }
+            composable("y_odeme") { OdemeEkrani(g) }
+            composable("y_subeler") { SubelerEkrani(g) }
+            composable("y_yemekpos") { YemekposEkrani(g) }
+            composable("y_entegrasyon") { EntegrasyonEkrani(g) }
+            composable("y_muhasebe") { MuhasebeEkrani(g) }
+            composable("y_ayarlar") { AyarlarEkrani(g) }
             composable("diger") {
                 DigerEkrani(ac = { yerli, url, ad ->
                     when {
