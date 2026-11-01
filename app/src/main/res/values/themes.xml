@@ -1,0 +1,12 @@
+<resources>
+    <style name="Tema" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/zemin</item>
+        <item name="android:statusBarColor">@color/koyu</item>
+    </style>
+
+    <style name="Tema.Acilis" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/koyu</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Tema</item>
+    </style>
+</resources>
