@@ -22,6 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.DeliveryDining
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Refresh
@@ -151,7 +154,7 @@ fun SiparislerEkrani(ac: (Int) -> Unit) {
                             item { Cip(aralik == "dun", "Dün") { aralik = "dun" } }
                             item { Cip(aralik == "hafta", "Bu hafta") { aralik = "hafta" } }
                             item { Cip(aralik == "ay", "Bu ay") { aralik = "ay" } }
-                            item { Cip(aralik == "ozel", if (aralik == "ozel") "📅 " + kisaTarih(ozelTarih) else "📅 Tarih seç") { tarihSec() } }
+                            item { Cip(aralik == "ozel", if (aralik == "ozel") kisaTarih(ozelTarih) else "Tarih seç") { tarihSec() } }
                         }
                         LazyRow(contentPadding = PaddingValues(horizontal = 14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             item { Cip(durum == "", "Tümü") { durum = "" } }
@@ -199,13 +202,13 @@ private fun SiparisSatir(o: JSONObject, tikla: () -> Unit) {
     ).filterNotNull().joinToString(" · ")
     Kart(onClick = tikla) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            IkonRozet(
+                when (o.optString("tip")) { "table" -> Icons.Filled.TableRestaurant; "delivery" -> Icons.Filled.DeliveryDining; else -> Icons.Filled.ShoppingBag },
+                when (o.optString("tip")) { "table" -> Mavi; "delivery" -> Yesil; else -> Turuncu }, 40
+            )
+            Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        when (o.optString("tip")) { "table" -> "🍽"; "delivery" -> "🛵"; else -> "🛍" } + " " + o.optString("no"),
-                        fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Text(o.optString("no"), fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("$tipAd · ${o.optString("saat")}" + (if (alt.isNotEmpty()) " · $alt" else ""), color = Soluk, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (o.optString("kurye").isNotEmpty()) Text("Kurye: " + o.optString("kurye"), color = Soluk, fontSize = 12.sp)
             }

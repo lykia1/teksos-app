@@ -20,6 +20,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -101,7 +105,7 @@ fun ProfilEkrani() {
                         ) {
                             RadioButton(selected = ben.optString("sube") == kod, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = Turuncu))
                             Spacer(Modifier.width(10.dp))
-                            Text("🏪 " + s.optString("ad"), fontSize = 16.sp)
+                            Text(s.optString("ad"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         }
                         if (i < subeler.size - 1) HorizontalDivider(color = Cizgi)
                     }
@@ -111,7 +115,7 @@ fun ProfilEkrani() {
             BolumBaslik("Telefon ayarları", Modifier.padding(start = 4.dp))
             Kart {
                 AyarSatir(
-                    "🔔 Bildirimler", if (bildirimAcik) "Açık" else "Kapalı — yeni paket ve uyarılar gelmez", bildirimAcik,
+                    "Bildirimler", if (bildirimAcik) "Açık" else "Kapalı — yeni paket ve uyarılar gelmez", bildirimAcik,
                     if (bildirimAcik) null else "İzin ver"
                 ) {
                     kapsam.launch {
@@ -121,11 +125,11 @@ fun ProfilEkrani() {
                 }
                 HorizontalDivider(color = Cizgi)
                 AyarSatir(
-                    "🔋 Pil kısıtlaması", if (pilSerbest) "Kaldırıldı — arka planda çalışabilir" else "Açık — telefon uygulamayı uyutabilir", pilSerbest,
+                    "Pil kısıtlaması", if (pilSerbest) "Kaldırıldı — arka planda çalışabilir" else "Açık — telefon uygulamayı uyutabilir", pilSerbest,
                     if (pilSerbest) null else "Kaldır"
                 ) { Konum.pilIzniIste(ctx); yenile++ }
                 HorizontalDivider(color = Cizgi)
-                AyarSatir("⚙️ Uygulama izinleri", "Konum, kamera, bildirim", true, "Aç") {
+                AyarSatir("Uygulama izinleri", "Konum, kamera, bildirim", true, "Aç") {
                     runCatching {
                         ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + ctx.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                     }
@@ -167,7 +171,14 @@ fun ProfilEkrani() {
 
 @Composable
 private fun AyarSatir(baslik: String, durum: String, iyi: Boolean, dugme: String?, tikla: () -> Unit) {
+    val ikon = when {
+        baslik.startsWith("Bildirim") -> Icons.Filled.Notifications
+        baslik.startsWith("Pil") -> Icons.Filled.BatteryChargingFull
+        else -> Icons.Filled.Security
+    }
     Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        IkonRozet(ikon, if (iyi) Yesil else Sari, 36)
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(baslik, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Text(durum, color = if (iyi) Yesil else Sari, fontSize = 12.sp)

@@ -28,6 +28,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -141,7 +144,7 @@ fun KuryeEkrani() {
             islemde = id
             try {
                 Api.post("kurye_islem", JSONObject().put("id", id).put("act", act).put("odeme", odeme))
-                mesaj = when (act) { "al" -> "Paket sizde, iyi yolculuklar 🛵"; "teslim" -> "Teslim edildi ✓"; else -> "Paket bırakıldı" }
+                mesaj = when (act) { "al" -> "Paket sizde, iyi yolculuklar."; "teslim" -> "Teslim edildi."; else -> "Paket bırakıldı." }
                 yukle()
             } catch (e: ApiHata) {
                 mesaj = e.message
@@ -244,11 +247,11 @@ fun KuryeEkrani() {
                     Text("${tp.optString("musteri").ifEmpty { "Müşteri" }} · ${tl(tp.optDouble("tutar"))}", color = Soluk)
                     if (odendi) {
                         Text("Bu sipariş önceden ödenmiş (online). Tahsilat yok.", fontSize = 14.sp)
-                        BuyukDugme("✓ Teslim ettim", Yesil) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "online") }
+                        BuyukDugme("Teslim ettim", Yesil) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "online") }
                     } else {
-                        BuyukDugme("💵 Nakit aldım", Yesil) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "nakit") }
-                        BuyukDugme("💳 Kartla ödendi", Mavi) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "kart") }
-                        BuyukDugme("🌐 Online ödenmişti", Koyu2) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "online") }
+                        BuyukDugme("Nakit aldım", Yesil) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "nakit") }
+                        BuyukDugme("Kartla ödendi", Mavi) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "kart") }
+                        BuyukDugme("Online ödenmişti", Koyu2) { teslimPaket = null; islem(tp.optInt("id"), "teslim", "online") }
                     }
                 }
             },
@@ -300,28 +303,28 @@ private fun PaketKart(p: JSONObject, benim: Boolean, islemde: Boolean, teslim: (
         }
         if (p.optString("not").isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            Text("📝 " + p.optString("not"), fontSize = 14.sp, modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFBEB), RoundedCornerShape(10.dp)).padding(10.dp))
+            Text("Not: " + p.optString("not"), fontSize = 14.sp, modifier = Modifier.fillMaxWidth().background(Color(0xFFFFFBEB), RoundedCornerShape(10.dp)).padding(10.dp))
         }
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (tel.isNotEmpty()) OutlinedButton(onClick = { runCatching { ctx.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$tel"))) } }, modifier = Modifier.weight(1f)) {
-                Text("📞 Ara", color = Murekkep)
+                Icon(Icons.Filled.Call, null, tint = Turuncu, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Ara", color = Murekkep)
             }
             val hedef = if (!p.isNull("lat")) "${p.optDouble("lat")},${p.optDouble("lng")}" else p.optString("adres")
-            if (hedef.isNotBlank()) OutlinedButton(onClick = { haritaAc(ctx, hedef) }, modifier = Modifier.weight(1f)) { Text("🧭 Yol tarifi", color = Murekkep) }
+            if (hedef.isNotBlank()) OutlinedButton(onClick = { haritaAc(ctx, hedef) }, modifier = Modifier.weight(1f)) { Icon(Icons.Filled.Navigation, null, tint = Turuncu, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Yol", color = Murekkep) }
             if (benim && tel.length >= 10) OutlinedButton(onClick = {
                 val metin = if (p.isNull("lat")) "Merhaba, siparişiniz yola çıktı 🛵 Size daha hızlı ulaşabilmem için WhatsApp’tan konumunuzu paylaşır mısınız? 📍" else "Merhaba, siparişiniz kapınızda 🛵"
                 runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/90" + tel.takeLast(10) + "?text=" + Uri.encode(metin)))) }
-            }, modifier = Modifier.weight(1f)) { Text(if (p.isNull("lat")) "📍 Konum" else "💬 Kapıda", color = Murekkep) }
+            }, modifier = Modifier.weight(1f)) { Icon(Icons.Filled.Chat, null, tint = Yesil, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(if (p.isNull("lat")) "Konum" else "Kapıda", color = Murekkep) }
         }
         Spacer(Modifier.height(10.dp))
         if (islemde) {
             Box(Modifier.fillMaxWidth().height(54.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Turuncu) }
         } else if (benim) {
-            BuyukDugme("✓ Teslim ettim", Yesil, teslim)
+            BuyukDugme("Teslim ettim", Yesil, teslim)
             TextButton(onClick = birak, modifier = Modifier.fillMaxWidth()) { Text("Bu paketi bırak", color = Soluk, fontSize = 13.sp) }
         } else {
-            BuyukDugme("🛵 Aldım, yola çıkıyorum", Turuncu, al)
+            BuyukDugme("Aldım, yola çıkıyorum", Turuncu, al)
         }
     }
 }

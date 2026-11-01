@@ -3,12 +3,13 @@ package com.teksosdoner.app.ui
 import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.DeliveryDining
+import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -53,12 +54,13 @@ fun AnaEkran() {
     val kurye = ben.optBoolean("kurye") && !admin
     val kasa = ben.optJSONObject("yetki")?.optBoolean("kasa") == true
     val sekmeler = buildList {
-        if (admin) add(Sekme("patron", "Özet", Icons.Filled.Home))
-        if (admin || kasa) add(Sekme("siparisler", "Siparişler", Icons.Filled.ShoppingCart))
-        if (kurye) add(Sekme("kurye", "Paketler", Icons.Filled.LocationOn))
-        if (!admin) add(Sekme("panel", "Panelim", Icons.Filled.Face))
-        add(Sekme("diger", "Menü", Icons.Filled.Menu))
-        add(Sekme("profil", "Profil", Icons.Filled.Person))
+        if (admin) add(Sekme("patron", "Özet", Icons.Filled.Dashboard))
+        if (admin || kasa) add(Sekme("siparisler", "Siparişler", Icons.Filled.ReceiptLong))
+        if (admin) add(Sekme("raporlar", "Raporlar", Icons.Filled.Insights))
+        if (kurye) add(Sekme("kurye", "Paketler", Icons.Filled.DeliveryDining))
+        if (!admin) add(Sekme("panel", "Panelim", Icons.Filled.Badge))
+        add(Sekme("diger", "Menü", Icons.Filled.Apps))
+        add(Sekme("profil", "Profil", Icons.Filled.AccountCircle))
     }
     val nav = rememberNavController()
     val girdi by nav.currentBackStackEntryAsState()
@@ -120,6 +122,7 @@ fun AnaEkran() {
             composable("siparis/{id}", arguments = listOf(navArgument("id") { type = NavType.IntType })) {
                 SiparisDetay(it.arguments?.getInt("id") ?: 0, geri = { nav.popBackStack() })
             }
+            composable("raporlar") { RaporlarEkrani() }
             composable("kurye") { KuryeEkrani() }
             composable("panel") { WebEkrani(Api.sunucu + "personel_panel.php", "Panelim", geri = null) }
             composable("diger") {
