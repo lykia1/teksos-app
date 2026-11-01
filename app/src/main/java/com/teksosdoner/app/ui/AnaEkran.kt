@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DeliveryDining
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -42,7 +43,7 @@ import com.teksosdoner.app.Oturum
 /** Sekme dışındaki yerli ekranlar (Menü'den açılır). */
 private val YerliEkranlar = setOf("mesai", "gider", "stok", "gunsonu", "musteriler", "personeller", "panel", "raporlar", "patron", "siparisler", "kurye",
     "y_urunler", "y_kategoriler", "y_secenekler", "y_kampanyalar", "y_vardiya", "y_maas", "y_hijyen", "y_doner", "y_duyurular", "y_kuryeler",
-    "y_islemler", "y_odeme", "y_masalar", "y_subeler", "y_yemekpos", "y_entegrasyon", "y_muhasebe", "y_ayarlar", "y_kapanis")
+    "y_islemler", "y_odeme", "y_masalar", "y_subeler", "y_yemekpos", "y_entegrasyon", "y_muhasebe", "y_ayarlar", "y_kapanis", "kasa", "y_tv")
 
 private data class Sekme(val rota: String, val ad: String, val ikon: ImageVector)
 
@@ -63,6 +64,7 @@ fun AnaEkran() {
         if (admin || kasa) add(Sekme("siparisler", "Siparişler", Icons.Filled.ReceiptLong))
         if (admin) add(Sekme("raporlar", "Raporlar", Icons.Filled.Insights))
         if (kurye) add(Sekme("kurye", "Paketler", Icons.Filled.DeliveryDining))
+        if (kasa && !admin) add(Sekme("kasa", "Kasa", Icons.Filled.PointOfSale))
         if (!admin) add(Sekme("panel", "Panelim", Icons.Filled.Badge))
         add(Sekme("diger", "Menü", Icons.Filled.Apps))
         add(Sekme("profil", "Profil", Icons.Filled.AccountCircle))
@@ -160,6 +162,11 @@ fun AnaEkran() {
             composable("y_entegrasyon") { EntegrasyonEkrani(g) }
             composable("y_muhasebe") { MuhasebeEkrani(g) }
             composable("y_ayarlar") { AyarlarEkrani(g) }
+            composable("kasa") { KasaEkrani(if (sekmeler.any { t -> t.rota == "kasa" }) null else g, siparisAc = { nav.navigate("siparis/$it") }) }
+            composable("y_tv") { TvEkrani(g, panoAc = { nav.navigate("y_tv_pano/$it") }, onizle = { u, b -> nav.webAc(u, b) }) }
+            composable("y_tv_pano/{no}", arguments = listOf(navArgument("no") { type = NavType.IntType })) {
+                TvPanoEkrani(it.arguments?.getInt("no") ?: 0, geri = g, onizle = { u, b -> nav.webAc(u, b) })
+            }
             composable("diger") {
                 DigerEkrani(ac = { yerli, url, ad ->
                     when {

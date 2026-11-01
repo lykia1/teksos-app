@@ -26,6 +26,10 @@ object Api {
 
     suspend fun post(rota: String, govde: JSONObject = JSONObject()): JSONObject = istek(rota, emptyMap(), govde)
 
+    /** Yerli kasa ekranı: kasa/api.php işlemleri (eylem = bootstrap, save, checkout …). */
+    suspend fun kasa(eylem: String, govde: JSONObject? = null, parametre: Map<String, String> = emptyMap()): JSONObject =
+        istek("kasa", parametre + ("eylem" to eylem), govde)
+
     private suspend fun istek(rota: String, parametre: Map<String, String>, govde: JSONObject?): JSONObject =
         withContext(Dispatchers.IO) {
             val url = (sunucu + "app_api.php").toHttpUrl().newBuilder().addQueryParameter("r", rota).apply {
@@ -49,7 +53,7 @@ object Api {
                 if (kod == 401 && Oturum.anahtar != null && rota != "giris" && rota != "giris_kod") {
                     withContext(Dispatchers.Main) { Oturum.cikis() }
                 }
-                throw ApiHata(kod, j.optString("hata", "Bir hata oluştu."))
+                throw ApiHata(kod, j.optString("hata", j.optString("error", "Bir hata oluştu.")))
             }
             j
         }
