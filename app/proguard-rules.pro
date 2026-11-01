@@ -8,3 +8,7 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
 -keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
+
+# Bildirim kütüphanesi küçültülmeden olduğu gibi kalsın (cihazda test edilemediği için güvenli tercih)
+-keep class com.onesignal.** { *; }
+-keep interface com.onesignal.** { *; }
