@@ -1,0 +1,17 @@
+{
+  "appId": "com.teksosdoner.app",
+  "appName": "Teksos",
+  "webDir": "www",
+  "appendUserAgent": "TeksosApp/1.0",
+  "backgroundColor": "#14110F",
+  "server": {
+    "url": "https://teksosdonerbesevler.com/index.php",
+    "cleartext": false,
+    "errorPath": "hata.html"
+  },
+  "android": {
+    "appendUserAgent": "TeksosApp/1.0",
+    "backgroundColor": "#14110F",
+    "adjustMarginsForEdgeToEdge": "force"
+  }
+}
