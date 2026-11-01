@@ -116,9 +116,13 @@ fun GirisEkrani() {
                 Modifier.fillMaxWidth().statusBarsPadding().padding(top = 56.dp, bottom = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(painterResource(R.mipmap.ic_launcher), contentDescription = null, modifier = Modifier.size(96.dp).clip(RoundedCornerShape(26.dp)))
-                Spacer(Modifier.height(18.dp))
-                Text(marka.uppercase(com.teksosdoner.app.TR), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Box(
+                    Modifier.size(width = 230.dp, height = 170.dp).clip(RoundedCornerShape(28.dp)).background(Color.White).padding(18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(painterResource(R.drawable.logo), contentDescription = marka, modifier = Modifier.fillMaxSize())
+                }
+                Spacer(Modifier.height(16.dp))
                 Text("Yönetim · Kasa · Kurye", color = Color(0xFFD6D3D1), fontSize = 15.sp)
             }
             Spacer(Modifier.weight(1f))

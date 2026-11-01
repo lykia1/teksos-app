@@ -4,9 +4,10 @@
         <item name="android:statusBarColor">@color/koyu</item>
     </style>
 
-    <style name="Tema.Acilis" parent="Theme.SplashScreen">
+    <style name="Tema.Acilis" parent="Theme.SplashScreen.IconBackground">
         <item name="windowSplashScreenBackground">@color/koyu</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/acilis_logo</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/beyaz</item>
         <item name="postSplashScreenTheme">@style/Tema</item>
     </style>
 </resources>
