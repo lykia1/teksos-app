@@ -80,6 +80,10 @@ jobs:
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict></plist>
           PLIST
+          echo "--- Arşivdeki çerçevelerin imzası ---"
+          for f in build/Teksos.xcarchive/Products/Applications/Teksos.app/Frameworks/*.framework; do
+            printf '%s: ' "$(basename $f)"; codesign -dv "$f" 2>&1 | grep -E "^Authority=" | head -1 || echo imzasiz
+          done
           # Önce yerel dışa aktarım: imza ve bildirim yetkisi (aps-environment) kontrol edilir
           sed 's#<string>upload</string>#<string>export</string>#' disari.plist > yerel.plist
           xcodebuild -exportArchive -archivePath build/Teksos.xcarchive -exportOptionsPlist yerel.plist \
