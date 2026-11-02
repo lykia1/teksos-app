@@ -30,7 +30,19 @@ def jeton():
                       P8, algorithm="ES256", headers={"kid": KID})
 
 
-def api(yol, veri=None, yontem=None):
+def api(yol, veri=None, yontem=None, deneme=4):
+    """Apple API çağrısı; Apple tarafındaki geçici 5xx hatalarında birkaç kez yeniden dener."""
+    for i in range(deneme):
+        try:
+            return _api(yol, veri, yontem)
+        except urllib.error.HTTPError as e:
+            if e.code < 500 or i == deneme - 1:
+                raise
+            print(f"Apple geçici hata {e.code}, {15 * (i + 1)} sn sonra yeniden denenecek…")
+            time.sleep(15 * (i + 1))
+
+
+def _api(yol, veri=None, yontem=None):
     istek = urllib.request.Request("https://api.appstoreconnect.apple.com" + yol,
                                    data=json.dumps(veri).encode() if veri is not None else None,
                                    headers={"Authorization": "Bearer " + jeton(), "Content-Type": "application/json"},
