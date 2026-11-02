@@ -34,6 +34,7 @@ import androidx.compose.foundation.Image
 import platform.Foundation.NSMutableURLRequest
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserDefaults
+import platform.Foundation.setValue
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
@@ -121,7 +122,7 @@ class IosPlatform(private val kopru: IosKopru) : Platform {
 
     override fun cerezTemizle() {
         WKWebsiteDataStore.defaultDataStore().removeDataOfTypes(
-            setOf(WKWebsiteDataTypeCookies), NSDate(timeIntervalSince1970 = 0.0)
+            setOf(WKWebsiteDataTypeCookies), NSDate(timeIntervalSinceReferenceDate = -978_307_200.0)
         ) {}
     }
 
