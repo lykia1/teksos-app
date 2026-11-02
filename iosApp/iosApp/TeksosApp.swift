@@ -1,10 +1,10 @@
 import SwiftUI
 import UIKit
+import UserNotifications
 import Shared
-import OneSignalFramework
 
 /// iPhone uygulamasının girişi. Bütün ekranlar ortak (Kotlin/Compose) koddan gelir;
-/// burada yalnızca bildirimler, konum ve yazdırma gibi Apple'a özgü işler var (Kopru.swift).
+/// burada yalnızca bildirimler, konum ve yazdırma gibi Apple'a özgü işler var (Kopru.swift, Bildirim.swift).
 @main
 struct TeksosApp: App {
     @UIApplicationDelegateAdaptor(UygulamaTemsilcisi.self) var temsilci
@@ -23,18 +23,39 @@ struct KokGorunum: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
-final class UygulamaTemsilcisi: NSObject, UIApplicationDelegate, OSNotificationClickListener {
+final class UygulamaTemsilcisi: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        OneSignal.initialize("7fb5f933-2168-419a-8fe8-c4b9cfad13b4", withLaunchOptions: launchOptions)
-        OneSignal.Notifications.addClickListener(self)
+        UNUserNotificationCenter.current().delegate = self
+        Bildirimler.ortak.baslat()
         Kopru.ortak.kaldigiYerdenSurdur()
         return true
     }
 
-    func onClick(event: OSNotificationClickEvent) {
-        if let url = event.notification.additionalData?["url"] as? String {
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        Bildirimler.ortak.cihazAnahtari(deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        NSLog("Teksos bildirim kaydı başarısız: \(error.localizedDescription)")
+    }
+
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        Bildirimler.ortak.durumuYenile()
+    }
+
+    // Uygulama açıkken de bildirim görünsün
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .list, .sound])
+    }
+
+    // Bildirime dokunulunca ilgili ekran (ör. kurye.php → Paketler)
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        if let url = Bildirimler.baglanti(response.notification.request.content.userInfo) {
             MainViewControllerKt.bildirimeDokunuldu(url: url)
         }
+        completionHandler()
     }
 }

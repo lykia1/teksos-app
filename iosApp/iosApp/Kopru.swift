@@ -2,7 +2,6 @@ import Foundation
 import UIKit
 import CoreLocation
 import Shared
-import OneSignalFramework
 
 /// Ortak koddaki IosKopru arayüzünün iPhone karşılığı: bildirim, kurye konumu, AirPrint.
 final class Kopru: NSObject, IosKopru, CLLocationManagerDelegate {
@@ -36,14 +35,12 @@ final class Kopru: NSObject, IosKopru, CLLocationManagerDelegate {
         return "\(v) (\(b))"
     }
 
-    // MARK: - Bildirimler (OneSignal)
+    // MARK: - Bildirimler (Bildirim.swift)
 
-    func bildirimGiris(kimlik: String) { OneSignal.login(kimlik) }
-    func bildirimCikis() { OneSignal.logout() }
-    func bildirimIzniIste(ayaraGotur: Bool) {
-        OneSignal.Notifications.requestPermission({ _ in }, fallbackToSettings: ayaraGotur)
-    }
-    func bildirimAcik() -> Bool { OneSignal.Notifications.permission }
+    func bildirimGiris(kimlik: String) { Bildirimler.ortak.giris(kimlik) }
+    func bildirimCikis() { Bildirimler.ortak.cikis() }
+    func bildirimIzniIste(ayaraGotur: Bool) { Bildirimler.ortak.izinIste(ayaraGotur: ayaraGotur) }
+    func bildirimAcik() -> Bool { Bildirimler.ortak.izinVar }
 
     // MARK: - Kurye konumu
 

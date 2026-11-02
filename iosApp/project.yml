@@ -7,21 +7,12 @@ options:
   bundleIdPrefix: com.teksosdoner
   deploymentTarget:
     iOS: "16.0"
-packages:
-  OneSignal:
-    url: https://github.com/OneSignal/OneSignal-XCFramework
-    from: 5.0.0
 targets:
   iosApp:
     type: application
     platform: iOS
     sources:
       - path: iosApp
-    dependencies:
-      - package: OneSignal
-        product: OneSignalFramework
-        embed: true
-        codeSign: true
     entitlements:
       path: iosApp/iosApp.entitlements
       properties:
