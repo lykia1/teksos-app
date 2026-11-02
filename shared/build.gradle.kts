@@ -10,8 +10,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val compose = "1.12.2"
-val ktor = "3.6.1"
+val compose = "1.9.3"
+val ktor = "3.3.3"
 
 kotlin {
     androidTarget {
@@ -35,12 +35,12 @@ kotlin {
             api("org.jetbrains.compose.ui:ui:$compose")
             api("org.jetbrains.compose.material3:material3:1.9.0")
             api("org.jetbrains.compose.material:material-icons-extended:1.7.3")
-            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.10.0")
+            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.9.1")
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
             api("io.ktor:ktor-client-core:$ktor")
         }
         androidMain.dependencies {
-            implementation("io.ktor:ktor-client-okhttp:$ktor")
+            implementation("io.ktor:ktor-client-android:$ktor")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
         }
         iosMain.dependencies {

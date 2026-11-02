@@ -38,6 +38,7 @@ import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.UIKit.UIPasteboard
+import platform.UIKit.popoverPresentationController
 import platform.UIKit.UIViewController
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
@@ -120,7 +121,7 @@ class IosPlatform(private val kopru: IosKopru) : Platform {
 
     override fun cerezTemizle() {
         WKWebsiteDataStore.defaultDataStore().removeDataOfTypes(
-            setOf(WKWebsiteDataTypeCookies), NSDate.dateWithTimeIntervalSince1970(0.0)
+            setOf(WKWebsiteDataTypeCookies), NSDate(timeIntervalSince1970 = 0.0)
         ) {}
     }
 
@@ -149,13 +150,15 @@ class IosPlatform(private val kopru: IosKopru) : Platform {
     override fun resimCoz(bayt: ByteArray): ImageBitmap? =
         runCatching { org.jetbrains.skia.Image.makeFromEncoded(bayt).toComposeImageBitmap() }.getOrNull()
 
-    private val logoResmi: ImageBitmap? by lazy {
-        val yol = NSBundle.mainBundle.pathForResource("logo", "png") ?: return@lazy null
-        val veri = NSData.dataWithContentsOfFile(yol) ?: return@lazy null
+    private fun logoYukle(): ImageBitmap? {
+        val yol: String = NSBundle.mainBundle.pathForResource("logo", "png") ?: return null
+        val veri: NSData = NSData.dataWithContentsOfFile(yol) ?: return null
         val bayt = ByteArray(veri.length.toInt())
         bayt.usePinned { memcpy(it.addressOf(0), veri.bytes, veri.length) }
-        resimCoz(bayt)
+        return resimCoz(bayt)
     }
+
+    private val logoResmi: ImageBitmap? by lazy { logoYukle() }
 
     @Composable
     override fun Logo(modifier: Modifier) {
@@ -177,7 +180,8 @@ class IosPlatform(private val kopru: IosKopru) : Platform {
                     w.allowsBackForwardNavigationGestures = true
                     NSURL.URLWithString(tamUrl)?.let { u ->
                         val istek = NSMutableURLRequest(uRL = u)
-                        Oturum.anahtar?.let { istek.setValue("teksos_app=$it", forHTTPHeaderField = "Cookie") }
+                        val anahtar = Oturum.anahtar
+                        if (anahtar != null) istek.setValue("teksos_app=$anahtar", forHTTPHeaderField = "Cookie")
                         w.loadRequest(istek)
                     }
                     w

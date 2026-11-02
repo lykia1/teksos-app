@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.teksosdoner.app.Api
 import com.teksosdoner.app.ApiHata
-import com.teksosdoner.app.Konum
 import com.teksosdoner.app.Oturum
 import com.teksosdoner.app.nesneler
 import com.teksosdoner.app.tl

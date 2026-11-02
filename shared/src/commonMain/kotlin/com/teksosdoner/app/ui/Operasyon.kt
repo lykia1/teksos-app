@@ -230,4 +230,4 @@ private fun eylemAdi(e: String): String = mapOf(
     "login" to "Giriş", "logout" to "Çıkış", "product_update" to "Ürün düzenlendi", "product_create" to "Ürün eklendi", "order_cancel" to "Sipariş iptal",
     "order_void" to "Sipariş iptal", "refund" to "İade", "discount" to "İndirim", "kurye_mutabakat" to "Kurye hesabı", "odeme_ayar" to "Ödeme ayarı",
     "ayar" to "Ayar değişti", "cash_open" to "Kasa açıldı", "cash_close" to "Kasa kapandı", "item_delete" to "Ürün silindi (adisyon)", "price_change" to "Fiyat değişti",
-).getOrDefault(e, e.replace('_', ' ').replaceFirstChar { it.titlecase(TR) })
+)[e] ?: e.replace('_', ' ').replaceFirstChar { it.titlecase(TR) }

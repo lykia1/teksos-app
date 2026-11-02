@@ -8,4 +8,4 @@ actual fun yerelZaman(): String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale
 
 actual fun simdiMs(): Long = System.currentTimeMillis()
 
-actual fun httpMotoru(): io.ktor.client.engine.HttpClientEngineFactory<*> = io.ktor.client.engine.okhttp.OkHttp
+actual fun httpMotoru(): io.ktor.client.engine.HttpClientEngineFactory<*> = io.ktor.client.engine.android.Android
