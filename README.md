@@ -1,21 +1,32 @@
-# Teksos Android uygulaması (yerli, Kotlin + Jetpack Compose)
+# Teksos uygulaması — Android ve iPhone (tek kod)
 
-Teksos Döner / Döner Atölyesi yönetim sisteminin Android uygulaması. Ekranlar telefonun
-kendi diliyle yazılmıştır; veriler sunucudaki `app_api.php` üzerinden gelir.
+Teksos Döner / Döner Atölyesi yönetim sisteminin telefon uygulaması. Bütün ekranlar
+Kotlin + Compose Multiplatform ile **bir kez** yazılır; Android ve iPhone aynı kodu kullanır.
+Veriler sunucudaki `app_api.php` (ve kasa için `kasa/api.php`) üzerinden gelir.
 
-## Yerli ekranlar (1. aşama)
-- Giriş (şube seçimi, 2 adımlı doğrulama, tek cihaz kilidi)
-- Özet (patron): tüm şubeler, bugünkü ciro, net kâr, hedef, son 7 gün, saatlik, kanal, ödeme, en çok satan, mesaidekiler
-- Siparişler: tarih/durum/tür filtreleri, arama, detay (ürünler, ödemeler, müşteri, ara/yol tarifi)
-- Kurye: bekleyen/üzerimdeki paketler, al/bırak/teslim + tahsilat, arama, yol tarifi, WhatsApp,
-  arka planda konum (telefon kilitliyken de, `KonumServisi`)
-- Profil: şube değiştirme, bildirim/pil/izin ayarları, çıkış
-- Menü: henüz yerlisi olmayan sayfalar uygulama içinde (aynı oturumla) açılır
+## Klasörler
+- `shared/` — ortak kod
+  - `commonMain/` — bütün ekranlar (`ui/`), sunucu bağlantısı (`Api.kt`), oturum, biçimler,
+    JSON (`json/Json.kt`, Android'deki org.json ile aynı davranır)
+  - `androidMain/`, `iosMain/` — telefona özgü küçük parçalar (saat, ağ motoru; iPhone kabuğu `IosPlatform.kt`)
+  - `commonTest/` — JSON / sayı / tarih biçimi testleri
+- `app/` — Android kabuğu: `MainActivity`, OneSignal, arka plan konum servisi, yazdırma, web görünümü (`AndroidPlatform.kt`)
+- `iosApp/` — iPhone kabuğu (Swift): OneSignal, arka plan konumu, AirPrint (`Kopru.swift`).
+  Xcode projesi `project.yml`'den XcodeGen ile üretilir.
 
-Bildirimler OneSignal ile (yeni paket → kuryeler; Telegram uyarıları → yöneticiler).
+Telefona özgü her şey `Platform` arayüzünden geçer (`shared/.../Platform.kt`); ekranlar yalnızca `os.…` çağırır.
 
-## Derleme
-`main` dalına her gönderimde GitHub Actions APK'yı derler: **Releases** ve `apk-son` dalı.
-Sürüm adı `surum.txt`, sürüm kodu `100 + derleme no`.
-Gerekli gizli ayar: `KS_PASS` (imza dosyası `imza/teksos.jks.b64` şifresi).
-Derleme hata verirse kayıt `derleme-log` dalındaki `son-hata.log` dosyasına yazılır.
+## Derleme (GitHub Actions)
+- `android.yml` — `main`'e her gönderimde APK: **Releases** ve `apk-son` dalı. Gizli ayar: `KS_PASS`.
+- `iphone-yayin.yml` — `main`'e her gönderimde iPhone sürümü TestFlight'a yüklenir.
+  Gizli ayarlar: `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`, `APPLE_TEAM_ID` (yoksa atlanır).
+- `ios.yml` — `ios` dalında deneme: Android derleme + testler + emülatör ekran görüntüsü (`android-sonuc` dalı),
+  iPhone simülatör derlemesi + ekran görüntüsü (`ios-sonuc` dalı).
+
+Sürüm adı `surum.txt`. Derleme hata verirse kayıt `derleme-log` dalındaki `son-hata.log` dosyasına yazılır.
+
+## Mac'te elle derleme (isteğe bağlı)
+```
+gradle :shared:linkDebugFrameworkIosSimulatorArm64
+brew install xcodegen && cd iosApp && xcodegen && open iosApp.xcodeproj
+```
