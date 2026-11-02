@@ -12,3 +12,7 @@
 # Bildirim kütüphanesi küçültülmeden olduğu gibi kalsın (cihazda test edilemediği için güvenli tercih)
 -keep class com.onesignal.** { *; }
 -keep interface com.onesignal.** { *; }
+
+# Ağ kütüphanesi (Ktor) isteğe bağlı günlük sınıfları
+-dontwarn org.slf4j.**
+-dontwarn java.lang.management.**

@@ -1,0 +1,55 @@
+# iPhone uygulamasının Xcode projesi bu dosyadan üretilir (XcodeGen): cd iosApp && xcodegen
+# Önce ortak kod derlenir:
+#   simülatör: gradle :shared:linkDebugFrameworkIosSimulatorArm64
+#   telefon:   gradle :shared:linkReleaseFrameworkIosArm64
+name: iosApp
+options:
+  bundleIdPrefix: com.teksosdoner
+  deploymentTarget:
+    iOS: "16.0"
+packages:
+  OneSignal:
+    url: https://github.com/OneSignal/OneSignal-XCFramework
+    from: 5.0.0
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosApp
+    dependencies:
+      - package: OneSignal
+        product: OneSignalFramework
+    entitlements:
+      path: iosApp/iosApp.entitlements
+      properties:
+        aps-environment: development
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.teksosdoner.app
+        PRODUCT_NAME: Teksos
+        MARKETING_VERSION: "3.2.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_VERSION: "5.0"
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        OTHER_LDFLAGS: ["$(inherited)", "-framework", "Shared"]
+        "FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]": ["$(inherited)", "$(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework"]
+        "FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]": ["$(inherited)", "$(SRCROOT)/../shared/build/bin/iosArm64/releaseFramework"]
+    info:
+      path: iosApp/Info.plist
+      properties:
+        CFBundleDisplayName: Teksos
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: ""
+        CADisableMinimumFrameDurationOnPhone: true
+        ITSAppUsesNonExemptEncryption: false
+        NSLocationWhenInUseUsageDescription: "Kurye olarak teslimattayken konumunuz yöneticinize ve siparişi bekleyen müşteriye gösterilir."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "Telefon kilitliyken de teslimat konumunuzun gitmesi için “Her Zaman” seçin. Mesai bitince Paketler ekranından kapatabilirsiniz."
+        NSCameraUsageDescription: "Mesai giriş-çıkışında QR kod okutmak için."
+        UIBackgroundModes: [location, remote-notification]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        "UISupportedInterfaceOrientations~ipad": [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]

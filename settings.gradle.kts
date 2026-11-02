@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Teksos"
-include(":app")
+include(":app", ":shared")
