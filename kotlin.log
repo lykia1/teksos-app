@@ -1,0 +1,35 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :shared:downloadKotlinNativeDistribution
+Kotlin/Native bundle directory /Users/runner/.konan/kotlin-native-prebuilt-macos-aarch64-2.3.21 is not empty. Native bundle files will be overwritten.
+Downloading native dependencies (LLVM, sysroot etc). This is a one-time action performed only on the first run of the compiler.
+Downloading dependency https://download.jetbrains.com/kotlin/native/resources/llvm/19-aarch64-macos/llvm-19-aarch64-macos-essentials-81.tar.gz to /Users/runner/.konan/dependencies/cache/llvm-19-aarch64-macos-essentials-81.tar.gz
+Done.
+Extracting dependency: /Users/runner/.konan/dependencies/cache/llvm-19-aarch64-macos-essentials-81.tar.gz into /Users/runner/.konan/dependencies
+Downloading dependency https://download.jetbrains.com/kotlin/native/libffi-3.3-1-macos-arm64.tar.gz to /Users/runner/.konan/dependencies/cache/libffi-3.3-1-macos-arm64.tar.gz
+Done.
+Extracting dependency: /Users/runner/.konan/dependencies/cache/libffi-3.3-1-macos-arm64.tar.gz into /Users/runner/.konan/dependencies
+
+> Task :shared:compileKotlinIosSimulatorArm64
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/AnaEkran.kt:68:79 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/DigerEkrani.kt:79:70 'val Icons.Filled.ReceiptLong: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ReceiptLong.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/DigerEkrani.kt:81:112 'val Icons.Filled.PlaylistAdd: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.PlaylistAdd.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/KasaEkrani.kt:222:17 'fun ScrollableTabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., edgePadding: Dp = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryScrollableTabRow and SecondaryScrollableTabRow tab variants.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/KuryeEkrani.kt:301:68 'val Icons.Filled.Chat: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Chat.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/MenuYonetimi.kt:176:41 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/MenuYonetimi.kt:205:41 'val Icons.Filled.PlaylistAdd: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.PlaylistAdd.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/MenuYonetimi.kt:247:41 'val Icons.Filled.PlaylistAdd: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.PlaylistAdd.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/RaporlarEkrani.kt:126:13 'fun ScrollableTabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., edgePadding: Dp = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryScrollableTabRow and SecondaryScrollableTabRow tab variants.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/RaporlarEkrani.kt:128:79 'fun Modifier.tabIndicatorOffset(currentTabPosition: TabPosition): Modifier' is deprecated. Solely for use alongside deprecated TabRowDefaults.Indicator method. For recommended PrimaryIndicator and SecondaryIndicator methods, please use TabIndicatorScope.tabIndicatorOffset method.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/RaporlarEkrani.kt:189:37 'val Icons.Filled.ShowChart: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ShowChart.
+w: file:///Users/runner/work/teksos-app/teksos-app/shared/src/commonMain/kotlin/com/teksosdoner/app/ui/RaporlarEkrani.kt:325:37 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+
+> Task :shared:linkDebugFrameworkIosSimulatorArm64
+w: The number of threads 4 is more than the number of processors 3
+gradle/actions: Writing build results to /Users/runner/work/_temp/.gradle-actions/build-results/__run-1793646284052.json
+
+BUILD SUCCESSFUL in 6m 4s
+4 actionable tasks: 4 executed
