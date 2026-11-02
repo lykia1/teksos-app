@@ -61,10 +61,10 @@ jobs:
           xcodegen
           xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release \
             -destination 'generic/platform=iOS' -archivePath build/Teksos.xcarchive \
-            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGN_STYLE=Automatic CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGN_STYLE=Automatic \
             MARKETING_VERSION=$SURUM CURRENT_PROJECT_VERSION=$NO \
-            archive > ../arsiv.log 2>&1 || { grep -E "error:|BUILD|ARCHIVE" ../arsiv.log | head -60; exit 1; }
-          # Arşiv imzasız alınır; App Store imzası dışa aktarırken Apple'ın bulut imzasıyla yapılır (cihaz gerekmez)
+            -allowProvisioningUpdates $KEY archive > ../arsiv.log 2>&1 || { grep -E "error:|BUILD|ARCHIVE" ../arsiv.log | head -60; exit 1; }
+          # Arşiv geliştirici imzasıyla alınır (hesapta kayıtlı en az bir iPhone gerekir); App Store imzası dışa aktarırken yapılır
           cat > disari.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
