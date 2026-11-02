@@ -5,7 +5,7 @@ name: iPhone TestFlight
 # (yoksa iş hata vermeden atlanır).
 on:
   push:
-    branches: [main]
+    branches: [main, ios]
   workflow_dispatch: {}
 
 jobs:
