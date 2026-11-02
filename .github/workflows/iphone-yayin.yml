@@ -61,9 +61,10 @@ jobs:
           xcodegen
           xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release \
             -destination 'generic/platform=iOS' -archivePath build/Teksos.xcarchive \
-            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGN_STYLE=Automatic CODE_SIGNING_ALLOWED=NO \
             MARKETING_VERSION=$SURUM CURRENT_PROJECT_VERSION=$NO \
-            -allowProvisioningUpdates $KEY archive > ../arsiv.log 2>&1 || { grep -E "error:|BUILD|ARCHIVE" ../arsiv.log | head -60; exit 1; }
+            archive > ../arsiv.log 2>&1 || { grep -E "error:|BUILD|ARCHIVE" ../arsiv.log | head -60; exit 1; }
+          # Arşiv imzasız alınır; App Store imzası dışa aktarırken Apple'ın bulut imzasıyla yapılır (cihaz gerekmez)
           cat > disari.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -75,6 +76,11 @@ jobs:
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict></plist>
           PLIST
+          # Önce yerel dışa aktarım: imza ve bildirim yetkisi (aps-environment) kontrol edilir
+          sed 's#<string>upload</string>#<string>export</string>#' disari.plist > yerel.plist
+          xcodebuild -exportArchive -archivePath build/Teksos.xcarchive -exportOptionsPlist yerel.plist \
+            -exportPath build/yerel -allowProvisioningUpdates $KEY > ../yerel.log 2>&1 || { tail -40 ../yerel.log; exit 1; }
+          cd build/yerel && unzip -q -o *.ipa && codesign -d --entitlements - Payload/Teksos.app 2>&1 | grep -E "aps-environment|application-identifier|team" -A1 | head -12; cd ../..
           xcodebuild -exportArchive -archivePath build/Teksos.xcarchive -exportOptionsPlist disari.plist \
             -exportPath build/disari -allowProvisioningUpdates $KEY > ../yukle.log 2>&1 || { tail -60 ../yukle.log; exit 1; }
           tail -5 ../yukle.log
@@ -85,5 +91,6 @@ jobs:
           name: testflight-log
           path: |
             arsiv.log
+            yerel.log
             yukle.log
           if-no-files-found: ignore
