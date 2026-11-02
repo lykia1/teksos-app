@@ -8,6 +8,9 @@ on:
     branches: [main, ios]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   testflight:
     runs-on: macos-latest
@@ -46,61 +49,75 @@ jobs:
           }
           tail -5 kotlin-yayin.log
 
-      - name: Arşivle ve TestFlight'a yükle
+      - name: Arşivle, imzala ve TestFlight'a yükle
         if: steps.kontrol.outputs.var == 'evet'
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          DEPO_URL: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
         run: |
           set -e
           SURUM=$(tr -d '[:space:]' < surum.txt)
           NO=$((1000 + ${{ github.run_number }}))
-          mkdir -p ~/anahtar && printf '%s\n' "$ASC_KEY_P8" > ~/anahtar/AuthKey_$ASC_KEY_ID.p8
-          KEY="-authenticationKeyPath $HOME/anahtar/AuthKey_$ASC_KEY_ID.p8 -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID"
-          brew install xcodegen
+          PAKET=com.teksosdoner.app
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s\n' "$ASC_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+
+          # 1) Dağıtım sertifikası ve App Store profili (iosApp/imza.py)
+          pip3 install --quiet --break-system-packages pyjwt cryptography >/dev/null 2>&1 || pip3 install --quiet pyjwt cryptography
+          python3 iosApp/imza.py
+          source imza/ortam.sh
+          security create-keychain -p gecici teksos.keychain
+          security set-keychain-settings -lut 3600 teksos.keychain
+          security unlock-keychain -p gecici teksos.keychain
+          security list-keychains -d user -s teksos.keychain $(security list-keychains -d user | tr -d '"')
+          security import imza/dagitim.p12 -k teksos.keychain -P "$P12_SIFRE" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gecici teksos.keychain >/dev/null
+          KIMLIK=$(security find-identity -v -p codesigning teksos.keychain | grep -m1 "Apple Distribution" | awk '{print $2}')
+          echo "İmza kimliği: $(security find-identity -v -p codesigning teksos.keychain | grep -m1 'Apple Distribution' | sed -E 's/.*"(.*)"/\1/' | sed -E 's/:.*\(/: … (/')"
+
+          # 2) İmzasız arşiv
+          brew install xcodegen >/dev/null
           cd iosApp
-          sed -i '' "s/aps-environment: development/aps-environment: production/" project.yml
           xcodegen
           xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release \
             -destination 'generic/platform=iOS' -archivePath build/Teksos.xcarchive \
-            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGNING_ALLOWED=NO \
             MARKETING_VERSION=$SURUM CURRENT_PROJECT_VERSION=$NO \
-            -allowProvisioningUpdates $KEY archive > ../arsiv.log 2>&1 || { grep -E "error:|BUILD|ARCHIVE" ../arsiv.log | head -60; exit 1; }
-          # Arşiv geliştirici imzasıyla alınır (hesapta kayıtlı en az bir iPhone gerekir); App Store imzası dışa aktarırken yapılır
-          cat > disari.plist <<PLIST
+            archive > ../arsiv.log 2>&1 || { grep -E "error:|BUILD|ARCHIVE" ../arsiv.log | head -60; exit 1; }
+          cd ..
+
+          # 3) İmza: ad yerine takım numarasını esas alan imza koşulu (adınızdaki "ö" Apple'ın kontrolünü bozmasın)
+          APP=iosApp/build/Teksos.xcarchive/Products/Applications/Teksos.app
+          cp imza/profil.mobileprovision "$APP/embedded.mobileprovision"
+          cat > imza/yetki.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0"><dict>
-            <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>upload</string>
-            <key>teamID</key><string>$APPLE_TEAM_ID</string>
-            <key>signingStyle</key><string>automatic</string>
-            <key>manageAppVersionAndBuildNumber</key><false/>
+            <key>application-identifier</key><string>$APPLE_TEAM_ID.$PAKET</string>
+            <key>com.apple.developer.team-identifier</key><string>$APPLE_TEAM_ID</string>
+            <key>aps-environment</key><string>production</string>
+            <key>beta-reports-active</key><true/>
+            <key>get-task-allow</key><false/>
           </dict></plist>
           PLIST
-          echo "--- Arşivdeki çerçevelerin imzası ---"
-          for f in build/Teksos.xcarchive/Products/Applications/Teksos.app/Frameworks/*.framework; do
-            printf '%s: ' "$(basename $f)"; codesign -dv "$f" 2>&1 | grep -E "^Authority=" | head -1 || echo imzasiz
-          done
-          # Önce yerel dışa aktarım: imza ve bildirim yetkisi (aps-environment) kontrol edilir
-          sed 's#<string>upload</string>#<string>export</string>#' disari.plist > yerel.plist
-          xcodebuild -exportArchive -archivePath build/Teksos.xcarchive -exportOptionsPlist yerel.plist \
-            -exportPath build/yerel -allowProvisioningUpdates $KEY > ../yerel.log 2>&1 || { tail -40 ../yerel.log; exit 1; }
-          cd build/yerel
-          unzip -q -o *.ipa
-          echo "--- İmza ---"
-          codesign -dvvv Payload/Teksos.app 2>&1 | grep -E "^Authority|^TeamIdentifier|^Identifier" || true
-          codesign -d --entitlements - --xml Payload/Teksos.app 2>/dev/null | plutil -p - 2>/dev/null || true
-          codesign --verify --deep --strict --verbose=2 Payload/Teksos.app 2>&1 | tail -5 || true
-          IPA=$(ls *.ipa | head -1)
-          cd ../..
-          # Yükleme: dışa aktarılan .ipa doğrudan App Store Connect'e gönderilir
-          mkdir -p ~/.appstoreconnect/private_keys && cp ~/anahtar/AuthKey_$ASC_KEY_ID.p8 ~/.appstoreconnect/private_keys/
-          xcrun altool --upload-app -f "build/yerel/$IPA" -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" > ../yukle.log 2>&1 || { tail -40 ../yukle.log; exit 1; }
-          tail -5 ../yukle.log
+          KOSUL="=designated => anchor apple generic and identifier \"$PAKET\" and certificate leaf[field.1.2.840.113635.100.6.1.4] and certificate leaf[subject.OU] = \"$APPLE_TEAM_ID\""
+          if [ -d "$APP/Frameworks" ]; then
+            find "$APP/Frameworks" -maxdepth 1 \( -name "*.framework" -o -name "*.dylib" \) -exec codesign -f -s "$KIMLIK" --keychain teksos.keychain {} \;
+          fi
+          codesign -f -s "$KIMLIK" --keychain teksos.keychain --entitlements imza/yetki.plist --generate-entitlement-der --requirements "$KOSUL" "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -d -r- "$APP" 2>&1 | tail -1
+
+          # 4) .ipa ve yükleme
+          rm -rf ipa && mkdir -p ipa/Payload && cp -R "$APP" ipa/Payload/
+          (cd ipa && zip -qry ../Teksos.ipa Payload)
+          xcrun altool --upload-app -f Teksos.ipa -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" > yukle.log 2>&1 || { tail -40 yukle.log; exit 1; }
+          tail -3 yukle.log
           echo "Teksos $SURUM ($NO) TestFlight'a yüklendi. App Store Connect'te birkaç dakika içinde işlenir."
+          security delete-keychain teksos.keychain || true
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -108,6 +125,5 @@ jobs:
           path: |
             kotlin-yayin.log
             arsiv.log
-            yerel.log
             yukle.log
           if-no-files-found: ignore
