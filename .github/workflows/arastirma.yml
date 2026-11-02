@@ -1,0 +1,27 @@
+name: Arastirma
+on:
+  push:
+    branches: [arastirma]
+jobs:
+  surumler:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          m() { echo "== $1"; curl -s "https://repo1.maven.org/maven2/$1/maven-metadata.xml" | grep -oE "<version>[^<]+</version>" | sed 's/<[^>]*>//g' | tail -${2:-12} | tr '\n' ' '; echo; }
+          m org/jetbrains/compose/compose-gradle-plugin 25
+          m org/jetbrains/androidx/navigation/navigation-compose 15
+          m org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose 10
+          m io/ktor/ktor-client-core 10
+          m org/jetbrains/kotlinx/kotlinx-datetime 8
+          m org/jetbrains/compose/material/material-icons-extended 8
+          m org/jetbrains/kotlin/kotlin-gradle-plugin 25
+          m org/jetbrains/kotlinx/kotlinx-coroutines-core 8
+          m org/jetbrains/kotlinx/kotlinx-serialization-json 8
+          m org/jetbrains/compose/material3/material3 10
+          echo "== AGP"; curl -s https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml | grep -oE "<version>[^<]+</version>" | sed 's/<[^>]*>//g' | tail -15 | tr '\n' ' '; echo
+          echo "== gradle"; curl -s https://services.gradle.org/versions/current
+  mac:
+    runs-on: macos-latest
+    steps:
+      - run: |
+          sw_vers; xcodebuild -version; ls /Applications | grep -i xcode; xcrun simctl list devices available | head -30; which xcodegen || echo "xcodegen yok"; brew --version | head -1; java -version 2>&1 | head -2
