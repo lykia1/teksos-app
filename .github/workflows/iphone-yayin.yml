@@ -88,9 +88,17 @@ jobs:
           sed 's#<string>upload</string>#<string>export</string>#' disari.plist > yerel.plist
           xcodebuild -exportArchive -archivePath build/Teksos.xcarchive -exportOptionsPlist yerel.plist \
             -exportPath build/yerel -allowProvisioningUpdates $KEY > ../yerel.log 2>&1 || { tail -40 ../yerel.log; exit 1; }
-          cd build/yerel && unzip -q -o *.ipa && codesign -d --entitlements - Payload/Teksos.app 2>&1 | grep -E "aps-environment|application-identifier|team" -A1 | head -12; cd ../..
-          xcodebuild -exportArchive -archivePath build/Teksos.xcarchive -exportOptionsPlist disari.plist \
-            -exportPath build/disari -allowProvisioningUpdates $KEY > ../yukle.log 2>&1 || { tail -60 ../yukle.log; exit 1; }
+          cd build/yerel
+          unzip -q -o *.ipa
+          echo "--- İmza ---"
+          codesign -dvvv Payload/Teksos.app 2>&1 | grep -E "^Authority|^TeamIdentifier|^Identifier" || true
+          codesign -d --entitlements - --xml Payload/Teksos.app 2>/dev/null | plutil -p - 2>/dev/null || true
+          codesign --verify --deep --strict --verbose=2 Payload/Teksos.app 2>&1 | tail -5 || true
+          IPA=$(ls *.ipa | head -1)
+          cd ../..
+          # Yükleme: dışa aktarılan .ipa doğrudan App Store Connect'e gönderilir
+          mkdir -p ~/.appstoreconnect/private_keys && cp ~/anahtar/AuthKey_$ASC_KEY_ID.p8 ~/.appstoreconnect/private_keys/
+          xcrun altool --upload-app -f "build/yerel/$IPA" -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" > ../yukle.log 2>&1 || { tail -40 ../yukle.log; exit 1; }
           tail -5 ../yukle.log
           echo "Teksos $SURUM ($NO) TestFlight'a yüklendi. App Store Connect'te birkaç dakika içinde işlenir."
       - if: failure()
