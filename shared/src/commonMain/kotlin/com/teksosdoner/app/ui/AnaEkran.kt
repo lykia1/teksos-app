@@ -137,8 +137,9 @@ fun AnaEkran() {
             composable("kurye") { KuryeEkrani() }
             composable("panel") {
                 val geriDon: () -> Unit = { nav.popBackStack() }
-                PanelEkrani(geri = if (sekmeler.any { t -> t.rota == "panel" }) null else geriDon, webAc = { u, b -> nav.webAc(u, b) })
+                PanelEkrani(geri = if (sekmeler.any { t -> t.rota == "panel" }) null else geriDon, mesaiAc = { nav.navigate("mesai_qr") })
             }
+            composable("mesai_qr") { MesaiQrEkrani(geri = { nav.popBackStack() }) }
             composable("mesai") { MesaiEkrani(geri = { nav.popBackStack() }) }
             composable("gider") { GiderEkrani(geri = { nav.popBackStack() }) }
             composable("stok") { StokEkrani(geri = { nav.popBackStack() }) }

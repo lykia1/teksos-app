@@ -31,10 +31,15 @@ import platform.posix.memcpy
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import androidx.compose.foundation.Image
+import platform.Foundation.NSHTTPCookie
+import platform.Foundation.NSHTTPCookieDomain
+import platform.Foundation.NSHTTPCookieName
+import platform.Foundation.NSHTTPCookiePath
+import platform.Foundation.NSHTTPCookieSecure
+import platform.Foundation.NSHTTPCookieValue
 import platform.Foundation.NSMutableURLRequest
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserDefaults
-import platform.Foundation.setValue
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
@@ -64,6 +69,12 @@ interface IosKopru {
     fun konumBaslat(url: String, kod: String): Boolean
     fun konumDurdur()
     fun yazdir(html: String, ad: String)
+    /** Kamera ile QR okur; vazgeçilirse null */
+    fun qrOku(sonuc: (String?) -> Unit)
+    /** Kamera fotoğrafı (onKamera: ön kamera) → küçültülmüş JPEG base64; vazgeçilirse null */
+    fun fotoCek(onKamera: Boolean, sonuc: (String?) -> Unit)
+    /** Tek seferlik konum "enlem,boylam"; alınamazsa null */
+    fun konumAl(sonuc: (String?) -> Unit)
 }
 
 private class IosDepo : Depo {
@@ -145,6 +156,10 @@ class IosPlatform(private val kopru: IosKopru) : Platform {
     override fun konumBaslat(url: String, kod: String): Boolean = kopru.konumBaslat(url, kod)
     override fun konumDurdur() = kopru.konumDurdur()
 
+    override fun qrOku(sonuc: (String?) -> Unit) = kopru.qrOku(sonuc)
+    override fun fotoCek(onKamera: Boolean, sonuc: (String?) -> Unit) = kopru.fotoCek(onKamera, sonuc)
+    override fun konumAl(sonuc: (String?) -> Unit) = kopru.konumAl(sonuc)
+
     override val pilAyariVar = false
     override fun pilSerbest() = true
     override fun pilIzniIste() {}
@@ -186,8 +201,14 @@ class IosPlatform(private val kopru: IosKopru) : Platform {
                     NSURL.URLWithString(tamUrl)?.let { u ->
                         val istek = NSMutableURLRequest(uRL = u)
                         val anahtar = Oturum.anahtar
-                        if (anahtar != null) istek.setValue("teksos_app=$anahtar", forHTTPHeaderField = "Cookie")
-                        w.loadRequest(istek)
+                        val alan = u.host
+                        // iOS'ta Cookie başlığı yok sayılır; oturum çerezi WebKit'in çerez deposuna konur
+                        val cerez = if (anahtar != null && alan != null) NSHTTPCookie.cookieWithProperties(mapOf<Any?, Any?>(
+                            NSHTTPCookieName to "teksos_app", NSHTTPCookieValue to anahtar, NSHTTPCookieDomain to alan,
+                            NSHTTPCookiePath to "/", NSHTTPCookieSecure to "TRUE",
+                        )) else null
+                        if (cerez != null) w.configuration.websiteDataStore.httpCookieStore.setCookie(cerez) { w.loadRequest(istek) }
+                        else w.loadRequest(istek)
                     }
                     w
                 },

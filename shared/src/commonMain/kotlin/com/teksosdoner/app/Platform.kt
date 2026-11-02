@@ -51,6 +51,13 @@ interface Platform {
     /** Uygulamanın telefon ayarları sayfası */
     fun ayarlariAc()
 
+    /** Kamerayla QR okutur; iptal edilirse null */
+    fun qrOku(sonuc: (String?) -> Unit)
+    /** Fotoğraf çeker; base64 JPEG ya da iptalde null. onKamera: ön (selfie) kamera tercih edilir */
+    fun fotoCek(onKamera: Boolean, sonuc: (String?) -> Unit)
+    /** Anlık konum "enlem,boylam"; izin/konum yoksa null */
+    fun konumAl(sonuc: (String?) -> Unit)
+
     /** İndirilen resmi çözer */
     fun resimCoz(bayt: ByteArray): ImageBitmap?
 

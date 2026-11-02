@@ -125,6 +125,13 @@ class AndroidPlatform(private val app: Context) : Platform {
         return BitmapFactory.decodeByteArray(bayt, 0, bayt.size, BitmapFactory.Options().apply { inSampleSize = oran })?.asImageBitmap()
     }
 
+    private fun etkinlikVar(sonuc: (String?) -> Unit): androidx.activity.ComponentActivity? =
+        (etkinlik?.get() as? androidx.activity.ComponentActivity).also { if (it == null) sonuc(null) }
+
+    override fun qrOku(sonuc: (String?) -> Unit) = Mesai.qrOku(etkinlik?.get() ?: app, sonuc)
+    override fun fotoCek(onKamera: Boolean, sonuc: (String?) -> Unit) { etkinlikVar(sonuc)?.let { Mesai.fotoCek(it, onKamera, sonuc) } }
+    override fun konumAl(sonuc: (String?) -> Unit) { etkinlikVar(sonuc)?.let { Mesai.konumAl(it, sonuc) } }
+
     @Composable
     override fun Logo(modifier: Modifier) =
         Image(painterResource(R.drawable.logo), contentDescription = "Teksos", modifier = modifier)

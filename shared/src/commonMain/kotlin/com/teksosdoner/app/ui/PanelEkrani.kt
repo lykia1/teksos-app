@@ -65,7 +65,7 @@ import kotlinx.coroutines.launch
 import com.teksosdoner.app.json.JSONObject
 
 @Composable
-fun PanelEkrani(geri: (() -> Unit)?, webAc: (String, String) -> Unit) {
+fun PanelEkrani(geri: (() -> Unit)?, mesaiAc: () -> Unit) {
     val kapsam = rememberCoroutineScope()
     var veri by remember { mutableStateOf<JSONObject?>(null) }
     var hata by remember { mutableStateOf<String?>(null) }
@@ -108,7 +108,7 @@ fun PanelEkrani(geri: (() -> Unit)?, webAc: (String, String) -> Unit) {
                                 Text("Konum ve yüz fotoğrafı doğrulanır.", color = Color(0xFFD6D3D1), fontSize = 13.sp)
                             }
                             Spacer(Modifier.height(14.dp))
-                            Button(onClick = { webAc(v.optString("qr_url"), "Mesai") }, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(14.dp),
+                            Button(onClick = mesaiAc, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(14.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = if (aktif != null) Kirmizi else Turuncu)) {
                                 Icon(Icons.Filled.QrCodeScanner, null); Spacer(Modifier.width(10.dp))
                                 Text(if (aktif != null) "Mesaiyi bitir (QR)" else "Mesaiye başla (QR)", fontWeight = FontWeight.Bold, fontSize = 16.sp)
