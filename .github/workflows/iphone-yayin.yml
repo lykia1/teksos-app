@@ -40,7 +40,11 @@ jobs:
         if: steps.kontrol.outputs.var == 'evet'
         run: |
           set -o pipefail
-          gradle :shared:linkReleaseFrameworkIosArm64 --no-daemon --console=plain 2>&1 | tail -40
+          gradle :shared:linkReleaseFrameworkIosArm64 --no-daemon --console=plain > kotlin-yayin.log 2>&1 || {
+            grep -nE "^e: |Exception|Error|error:|Caused by" kotlin-yayin.log | grep -v "^\s*at " | head -40
+            exit 1
+          }
+          tail -5 kotlin-yayin.log
 
       - name: Arşivle ve TestFlight'a yükle
         if: steps.kontrol.outputs.var == 'evet'
@@ -90,6 +94,7 @@ jobs:
         with:
           name: testflight-log
           path: |
+            kotlin-yayin.log
             arsiv.log
             yerel.log
             yukle.log
