@@ -100,7 +100,7 @@ object Mesai {
             val uri = FileProvider.getUriForFile(a, a.packageName + ".dosyalar", dosya)
             try {
                 tekSefer(a, FotoSozlesme(onKamera), uri) { tamam ->
-                    val b64 = if (tamam && dosya.length() > 0) runCatching { kucult(dosya) }.getOrNull() else null
+                    val b64 = if (tamam && dosya.length() > 0) runCatching { kucult(dosya, if (onKamera) 640 else 1000) }.getOrNull() else null
                     dosya.delete()
                     sonuc(b64)
                 }

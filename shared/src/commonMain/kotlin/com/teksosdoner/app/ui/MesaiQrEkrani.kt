@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.teksosdoner.app.Api
 import com.teksosdoner.app.ApiHata
-import com.teksosdoner.app.json.JSONArray
 import com.teksosdoner.app.json.JSONObject
 import com.teksosdoner.app.nesneler
 import com.teksosdoner.app.os
@@ -54,6 +53,9 @@ import kotlinx.coroutines.launch
  * QR ile mesai girişi / çıkışı (yerli): konum → dükkandaki ekranın QR kodu → ön kamera fotoğrafı → gönder.
  * Çıkışta kapanış görevleri (gerekenlerde fotoğraf) işaretlenir.
  */
+@OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
+private fun b64Coz(s: String): ByteArray = kotlin.io.encoding.Base64.Default.decode(s)
+
 @Composable
 fun MesaiQrEkrani(geri: () -> Unit) {
     val kapsam = rememberCoroutineScope()
@@ -78,12 +80,16 @@ fun MesaiQrEkrani(geri: () -> Unit) {
         adim = "Gönderiliyor…"
         kapsam.launch {
             try {
-                val (enlem, boylam) = konum.split(",").let { it[0].toDouble() to it[1].toDouble() }
-                val g = JSONObject().put("qr", qr).put("enlem", enlem).put("boylam", boylam)
-                if (selfie != null) g.put("selfie", selfie)
-                g.put("gorevler", JSONArray(onay.filterValues { it }.keys.toList()))
-                g.put("fotolar", JSONObject().apply { foto.forEach { (id, b) -> put(id.toString(), b) } })
-                sonuc = Api.post("mesai_qr", g).optString("mesaj")
+                val (enlem, boylam) = konum.split(",")
+                val alanlar = mapOf(
+                    "qr" to qr, "enlem" to enlem.trim(), "boylam" to boylam.trim(),
+                    "gorevler" to onay.filterValues { it }.keys.joinToString(","),
+                )
+                val dosyalar = buildMap {
+                    if (selfie != null) put("selfie", b64Coz(selfie))
+                    foto.forEach { (id, b) -> put("foto_$id", b64Coz(b)) }
+                }
+                sonuc = Api.postDosyali("mesai_qr", alanlar, dosyalar).optString("mesaj")
                 hata = null
             } catch (e: ApiHata) {
                 hata = e.message

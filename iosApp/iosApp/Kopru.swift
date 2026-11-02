@@ -18,6 +18,7 @@ final class Kopru: NSObject, IosKopru, CLLocationManagerDelegate {
     private var tekSonuc: ((String?) -> Void)?
     private var tekIzinBekliyor = false
     private var fotoSonuc: ((String?) -> Void)?
+    fileprivate var fotoEnFazla: CGFloat = 1000
 
     override init() {
         super.init()
@@ -211,6 +212,7 @@ final class Kopru: NSObject, IosKopru, CLLocationManagerDelegate {
                 p.sourceType = .camera
                 if onKamera && UIImagePickerController.isCameraDeviceAvailable(.front) { p.cameraDevice = .front }
                 p.delegate = self
+                self.fotoEnFazla = onKamera ? 640 : 1000
                 self.fotoSonuc = sonuc
                 ust.present(p, animated: true)
             }
@@ -241,7 +243,7 @@ extension Kopru: UIImagePickerControllerDelegate, UINavigationControllerDelegate
         p.dismiss(animated: true) {
             let f = self.fotoSonuc
             self.fotoSonuc = nil
-            f?(resim.flatMap { Kopru.kucult($0) })
+            f?(resim.flatMap { Kopru.kucult($0, enFazla: self.fotoEnFazla) })
         }
     }
 
@@ -259,7 +261,7 @@ extension Kopru: UIImagePickerControllerDelegate, UINavigationControllerDelegate
         let bicim = UIGraphicsImageRendererFormat.default()
         bicim.scale = 1
         let yeni = UIGraphicsImageRenderer(size: boyut, format: bicim).image { _ in r.draw(in: CGRect(origin: .zero, size: boyut)) }
-        return yeni.jpegData(compressionQuality: 0.75)?.base64EncodedString()
+        return yeni.jpegData(compressionQuality: 0.7)?.base64EncodedString()
     }
 }
 
