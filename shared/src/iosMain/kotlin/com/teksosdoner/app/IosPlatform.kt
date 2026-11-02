@@ -39,6 +39,8 @@ import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.UIKit.UIPasteboard
+import platform.UIKit.UIImage
+import platform.UIKit.UIImagePNGRepresentation
 import platform.UIKit.popoverPresentationController
 import platform.UIKit.UIViewController
 import platform.WebKit.WKWebView
@@ -152,8 +154,10 @@ class IosPlatform(private val kopru: IosKopru) : Platform {
         runCatching { org.jetbrains.skia.Image.makeFromEncoded(bayt).toComposeImageBitmap() }.getOrNull()
 
     private fun logoYukle(): ImageBitmap? {
+        // Xcode PNG'leri Apple'a özel biçime sıkıştırır; UIImage ile açıp standart PNG'ye çeviriyoruz
         val yol: String = NSBundle.mainBundle.pathForResource("logo", "png") ?: return null
-        val veri: NSData = NSData.dataWithContentsOfFile(yol) ?: return null
+        val resim = UIImage.imageWithContentsOfFile(yol) ?: return null
+        val veri: NSData = UIImagePNGRepresentation(resim) ?: return null
         val bayt = ByteArray(veri.length.toInt())
         bayt.usePinned { memcpy(it.addressOf(0), veri.bytes, veri.length) }
         return resimCoz(bayt)

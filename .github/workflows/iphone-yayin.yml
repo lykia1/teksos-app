@@ -1,0 +1,89 @@
+name: iPhone TestFlight
+
+# main dalına her gönderimde iPhone sürümü derlenip TestFlight'a yüklenir.
+# Gerekli gizli ayarlar: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, APPLE_TEAM_ID
+# (yoksa iş hata vermeden atlanır).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  testflight:
+    runs-on: macos-latest
+    steps:
+      - name: Apple anahtarları var mı?
+        id: kontrol
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "$ASC_KEY_ID" ] || [ -z "$ASC_ISSUER_ID" ] || [ -z "$ASC_KEY_P8" ] || [ -z "$APPLE_TEAM_ID" ]; then
+            echo "Apple anahtarları henüz eklenmemiş; TestFlight yüklemesi atlandı."
+            echo "var=hayir" >> $GITHUB_OUTPUT
+          else
+            echo "var=evet" >> $GITHUB_OUTPUT
+          fi
+
+      - if: steps.kontrol.outputs.var == 'evet'
+        uses: actions/checkout@v4
+      - if: steps.kontrol.outputs.var == 'evet'
+        uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - if: steps.kontrol.outputs.var == 'evet'
+        uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.14.3" }
+
+      - name: Ortak kod (telefon için, yayın)
+        if: steps.kontrol.outputs.var == 'evet'
+        run: |
+          set -o pipefail
+          gradle :shared:linkReleaseFrameworkIosArm64 --no-daemon --console=plain 2>&1 | tail -40
+
+      - name: Arşivle ve TestFlight'a yükle
+        if: steps.kontrol.outputs.var == 'evet'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -e
+          SURUM=$(tr -d '[:space:]' < surum.txt)
+          NO=$((1000 + ${{ github.run_number }}))
+          mkdir -p ~/anahtar && printf '%s\n' "$ASC_KEY_P8" > ~/anahtar/AuthKey_$ASC_KEY_ID.p8
+          KEY="-authenticationKeyPath $HOME/anahtar/AuthKey_$ASC_KEY_ID.p8 -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID"
+          brew install xcodegen
+          cd iosApp
+          sed -i '' "s/aps-environment: development/aps-environment: production/" project.yml
+          xcodegen
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/Teksos.xcarchive \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGN_STYLE=Automatic \
+            MARKETING_VERSION=$SURUM CURRENT_PROJECT_VERSION=$NO \
+            -allowProvisioningUpdates $KEY archive > ../arsiv.log 2>&1 || { grep -E "error:|BUILD|ARCHIVE" ../arsiv.log | head -60; exit 1; }
+          cat > disari.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath build/Teksos.xcarchive -exportOptionsPlist disari.plist \
+            -exportPath build/disari -allowProvisioningUpdates $KEY > ../yukle.log 2>&1 || { tail -60 ../yukle.log; exit 1; }
+          tail -5 ../yukle.log
+          echo "Teksos $SURUM ($NO) TestFlight'a yüklendi. App Store Connect'te birkaç dakika içinde işlenir."
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testflight-log
+          path: |
+            arsiv.log
+            yukle.log
+          if-no-files-found: ignore

@@ -39,6 +39,9 @@ kotlin {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
             api("io.ktor:ktor-client-core:$ktor")
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
         androidMain.dependencies {
             implementation("io.ktor:ktor-client-android:$ktor")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
