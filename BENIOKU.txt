@@ -1,0 +1,1 @@
+iPhone dağıtım sertifikası (şifreli). Şifre ASC_KEY_P8 gizli ayarından türetilir; iosApp/imza.py kullanır.
