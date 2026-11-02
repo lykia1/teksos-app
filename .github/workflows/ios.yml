@@ -5,6 +5,9 @@ on:
     branches: [ios]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   android-kontrol:
     runs-on: ubuntu-latest
@@ -20,6 +23,7 @@ jobs:
         run: |
           base64 -d imza/teksos.jks.b64 > app/teksos.jks
           export KS_FILE=teksos.jks VCODE=999 VNAME=ios-deneme
+          set -o pipefail
           gradle :app:assembleRelease --no-daemon --console=plain 2>&1 | tee android.log
       - if: always()
         uses: actions/upload-artifact@v4
@@ -34,7 +38,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: "8.14.3" }
       - name: Ortak kod (Kotlin → iPhone)
-        run: gradle :shared:linkDebugFrameworkIosSimulatorArm64 --no-daemon --console=plain 2>&1 | tee kotlin.log
+        run: |
+          set -o pipefail
+          gradle :shared:linkDebugFrameworkIosSimulatorArm64 --no-daemon --console=plain 2>&1 | tee kotlin.log
       - name: Xcode projesi
         run: brew install xcodegen && cd iosApp && xcodegen
       - name: Simülatör için derle
@@ -43,8 +49,7 @@ jobs:
           cd iosApp
           xcodebuild -project iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO ARCHS=arm64 build 2>&1 | tee ../xcode.log | grep -E "error|warning: .*Shared|BUILD" || true
-          test -d build/Build/Products/Debug-iphonesimulator/Teksos.app
+            CODE_SIGNING_ALLOWED=NO ARCHS=arm64 build > ../xcode.log 2>&1 || { grep -E "error:|BUILD" ../xcode.log | head -60; exit 1; }
       - name: Simülatörde aç, ekran görüntüsü al
         run: |
           CIHAZ=$(xcrun simctl list devices available | grep -m1 "iPhone 17 Pro (" | grep -oE "[0-9A-F-]{36}")
@@ -55,6 +60,15 @@ jobs:
           sleep 25
           xcrun simctl io "$CIHAZ" screenshot iphone-giris.png
           xcrun simctl spawn "$CIHAZ" log show --last 2m --predicate 'process == "Teksos"' > sim.log 2>&1 || true
+      - name: Sonucu ios-sonuc dalına yaz
+        if: always()
+        run: |
+          mkdir -p /tmp/s && cp iphone-giris.png kotlin.log xcode.log sim.log /tmp/s/ 2>/dev/null || true
+          git config user.name derleme; git config user.email derleme@users.noreply.github.com
+          git checkout --orphan ios-sonuc && git rm -rfq --cached . && git clean -fdxq -e iosApp/build
+          cp /tmp/s/* . 2>/dev/null || true
+          git add -f iphone-giris.png kotlin.log xcode.log sim.log 2>/dev/null || true
+          git commit -qm "iPhone sonuc ${{ github.run_number }}" && git push -qf origin ios-sonuc
       - if: always()
         uses: actions/upload-artifact@v4
         with:
