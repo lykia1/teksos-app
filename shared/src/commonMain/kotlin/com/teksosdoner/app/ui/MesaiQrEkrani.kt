@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.teksosdoner.app.Api
 import com.teksosdoner.app.ApiHata
+import com.teksosdoner.app.json.JSONArray
 import com.teksosdoner.app.json.JSONObject
 import com.teksosdoner.app.nesneler
 import com.teksosdoner.app.os
@@ -81,15 +82,20 @@ fun MesaiQrEkrani(geri: () -> Unit) {
         kapsam.launch {
             try {
                 val (enlem, boylam) = konum.split(",")
-                val alanlar = mapOf(
-                    "qr" to qr, "enlem" to enlem.trim(), "boylam" to boylam.trim(),
-                    "gorevler" to onay.filterValues { it }.keys.joinToString(","),
-                )
-                val dosyalar = buildMap {
-                    if (selfie != null) put("selfie", b64Coz(selfie))
-                    foto.forEach { (id, b) -> put("foto_$id", b64Coz(b)) }
+                // Fotoğraflar önce tek tek ham JPEG olarak yüklenir (güvenlik duvarına takılmasın), sonra küçük bir istekle mesai işlenir
+                adim = "Fotoğraflar yükleniyor…"
+                val fotoIdler = JSONObject()
+                foto.forEach { (id, b) ->
+                    fotoIdler.put(id.toString(), Api.postHam("mesai_foto", mapOf("tur" to "kapanis"), b64Coz(b)).optString("id"))
                 }
-                sonuc = Api.postDosyali("mesai_qr", alanlar, dosyalar).optString("mesaj")
+                // Yüz fotoğrafı zorunlu değil: yüklenemezse mesai yine işlenir
+                val selfieId = selfie?.let { runCatching { Api.postHam("mesai_foto", mapOf("tur" to "selfie"), b64Coz(it)).optString("id") }.getOrNull() }
+                adim = "Gönderiliyor…"
+                val g = JSONObject().put("qr", qr).put("enlem", enlem.trim().toDouble()).put("boylam", boylam.trim().toDouble())
+                    .put("gorevler", JSONArray(onay.filterValues { it }.keys.toList()))
+                    .put("foto_idler", fotoIdler)
+                if (selfieId != null) g.put("selfie_id", selfieId)
+                sonuc = Api.post("mesai_qr", g).optString("mesaj")
                 hata = null
             } catch (e: ApiHata) {
                 hata = e.message

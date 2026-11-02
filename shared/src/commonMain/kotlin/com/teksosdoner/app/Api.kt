@@ -64,6 +64,16 @@ object Api {
             }) { ayarla(rota, emptyMap()) }
         }
 
+    /** Ham gövde (ör. JPEG) gönderimi: application/octet-stream, güvenlik duvarları içeriğini incelemez */
+    suspend fun postHam(rota: String, parametre: Map<String, String>, bayt: ByteArray): JSONObject =
+        istek(rota, parametre, null) { url ->
+            http.post(url) {
+                ayarla(rota, parametre)
+                contentType(ContentType.Application.OctetStream)
+                setBody(bayt)
+            }
+        }
+
     private suspend fun istek(
         rota: String, parametre: Map<String, String>, govde: JSONObject?,
         ozel: (suspend (String) -> io.ktor.client.statement.HttpResponse)? = null,
