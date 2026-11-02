@@ -44,7 +44,7 @@ import com.teksosdoner.app.Oturum
 /** Sekme dışındaki yerli ekranlar (Menü'den açılır). */
 private val YerliEkranlar = setOf("mesai", "gider", "stok", "gunsonu", "musteriler", "personeller", "panel", "raporlar", "patron", "siparisler", "kurye",
     "y_urunler", "y_kategoriler", "y_secenekler", "y_kampanyalar", "y_vardiya", "y_maas", "y_hijyen", "y_doner", "y_duyurular", "y_kuryeler",
-    "y_islemler", "y_odeme", "y_masalar", "y_subeler", "y_yemekpos", "y_entegrasyon", "y_muhasebe", "y_ayarlar", "y_kapanis", "kasa", "y_tv")
+    "y_islemler", "y_odeme", "y_masalar", "y_subeler", "y_yemekpos", "y_entegrasyon", "y_muhasebe", "y_ayarlar", "y_kapanis", "kasa", "y_tv", "y_talepler")
 
 private data class Sekme(val rota: String, val ad: String, val ikon: ImageVector)
 
@@ -137,9 +137,17 @@ fun AnaEkran() {
             composable("kurye") { KuryeEkrani() }
             composable("panel") {
                 val geriDon: () -> Unit = { nav.popBackStack() }
-                PanelEkrani(geri = if (sekmeler.any { t -> t.rota == "panel" }) null else geriDon, mesaiAc = { nav.navigate("mesai_qr") })
+                PanelEkrani(geri = if (sekmeler.any { t -> t.rota == "panel" }) null else geriDon, mesaiAc = { nav.navigate("mesai_qr") }, ac = { nav.navigate(it) { launchSingleTop = true } })
             }
             composable("mesai_qr") { MesaiQrEkrani(geri = { nav.popBackStack() }) }
+            composable("p_ozet") { OzetEkrani(geri = { nav.popBackStack() }) }
+            composable("p_hakedis") { HakedisGecmisEkrani(geri = { nav.popBackStack() }) }
+            composable("p_talepler") { TaleplerEkrani(geri = { nav.popBackStack() }) }
+            composable("p_gorevler") { GorevlerEkrani(geri = { nav.popBackStack() }) }
+            composable("p_fire") { FireEkrani(geri = { nav.popBackStack() }) }
+            composable("p_sayim") { SayimEkrani(geri = { nav.popBackStack() }) }
+            composable("p_rehber") { RehberEkrani(geri = { nav.popBackStack() }) }
+            composable("y_talepler") { TaleplerYonetimEkrani(geri = { nav.popBackStack() }) }
             composable("mesai") { MesaiEkrani(geri = { nav.popBackStack() }) }
             composable("gider") { GiderEkrani(geri = { nav.popBackStack() }) }
             composable("stok") { StokEkrani(geri = { nav.popBackStack() }) }

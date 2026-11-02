@@ -328,6 +328,13 @@ fun DuyurularEkrani(geri: (() -> Unit)?) {
                         Text(tarihSaat(d.optString("tarih")), color = Soluk, fontSize = 11.sp)
                         Spacer(Modifier.height(4.dp))
                         Text(d.optString("metin"), fontSize = 14.sp)
+                        if (d.optInt("toplam") > 0) {
+                            Spacer(Modifier.height(6.dp))
+                            Text("👁 ${d.optInt("okuyan")} / ${d.optInt("toplam")} kişi okudu", fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                                color = if (d.optInt("okuyan") >= d.optInt("toplam")) Yesil else Sari)
+                            val ok = d.optJSONArray("okumayan").metinler()
+                            if (ok.isNotEmpty()) Text("Okumayan: " + ok.joinToString(", "), fontSize = 11.sp, color = Soluk)
+                        }
                     }
                 }
                 EylemSatiri(Triple("Sil", Kirmizi) { k.ac { OnayPenceresi("Duyuru silinsin mi?", d.optString("baslik"), "Sil", kapat = k.kapat) { k.islem("y_duyuru_islem", govde("sil", d.optInt("id"))) } } })

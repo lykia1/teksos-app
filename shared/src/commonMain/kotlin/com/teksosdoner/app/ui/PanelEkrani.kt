@@ -20,6 +20,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.History
@@ -65,7 +73,7 @@ import kotlinx.coroutines.launch
 import com.teksosdoner.app.json.JSONObject
 
 @Composable
-fun PanelEkrani(geri: (() -> Unit)?, mesaiAc: () -> Unit) {
+fun PanelEkrani(geri: (() -> Unit)?, mesaiAc: () -> Unit, ac: (String) -> Unit = {}) {
     val kapsam = rememberCoroutineScope()
     var veri by remember { mutableStateOf<JSONObject?>(null) }
     var hata by remember { mutableStateOf<String?>(null) }
@@ -159,6 +167,25 @@ fun PanelEkrani(geri: (() -> Unit)?, mesaiAc: () -> Unit) {
                             IslemKutu("Şifrem", Icons.Filled.Key, Soluk, Modifier.weight(1f)) { pencere = "sifre" }
                         }
                     }
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                IslemKutu("Taleplerim", Icons.Filled.SwapHoriz, Turuncu, Modifier.weight(1f)) { ac("p_talepler") }
+                                IslemKutu("Görevlerim", Icons.Filled.Checklist, Yesil, Modifier.weight(1f)) { ac("p_gorevler") }
+                                IslemKutu("Aylık özetim", Icons.Filled.Insights, Mavi, Modifier.weight(1f)) { ac("p_ozet") }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                IslemKutu("Hak ediş geçmişi", Icons.Filled.Payments, Yesil, Modifier.weight(1f)) { ac("p_hakedis") }
+                                IslemKutu("Fire bildir", Icons.Filled.DeleteSweep, Kirmizi, Modifier.weight(1f)) { ac("p_fire") }
+                                IslemKutu("Vardiya sayımı", Icons.Filled.Inventory, Sari, Modifier.weight(1f)) { ac("p_sayim") }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                IslemKutu("İş arkadaşlarım", Icons.Filled.Groups, Mavi, Modifier.weight(1f)) { ac("p_rehber") }
+                                IslemKutu("Yöneticiye yaz", Icons.Filled.Mail, Color(0xFF7C3AED), Modifier.weight(1f)) { ac("p_talepler") }
+                                IslemKutu("Mesai düzelt", Icons.Filled.Schedule, Turuncu, Modifier.weight(1f)) { ac("p_talepler") }
+                            }
+                        }
+                    }
                     val izinler = v.optJSONArray("izinler").nesneler()
                     if (izinler.isNotEmpty()) item {
                         Kart {
@@ -199,9 +226,20 @@ fun PanelEkrani(geri: (() -> Unit)?, mesaiAc: () -> Unit) {
                         Kart {
                             KartBaslik(Icons.Filled.Campaign, "Duyurular", renk = Color(0xFF7C3AED))
                             duy.forEach { d ->
-                                Text(d.optString("baslik").ifEmpty { "Duyuru" }, fontWeight = FontWeight.Bold)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(d.optString("baslik").ifEmpty { "Duyuru" }, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                    if (!d.optBoolean("okundu")) Rozet("Yeni", Kirmizi, KirmiziAcik)
+                                }
                                 Text(d.optString("metin"), fontSize = 14.sp)
-                                Text(tarihSaat(d.optString("tarih")), color = Soluk, fontSize = 11.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(tarihSaat(d.optString("tarih")), color = Soluk, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                                    if (!d.optBoolean("okundu") && d.optInt("id") > 0) TextButton(onClick = {
+                                        kapsam.launch {
+                                            try { Api.post("p_duyuru_okudum", JSONObject().put("id", d.optInt("id"))) } catch (_: ApiHata) {}
+                                            yukle()
+                                        }
+                                    }) { Text("Okudum ✓", color = Yesil, fontWeight = FontWeight.Bold) }
+                                }
                                 Ayrac()
                             }
                         }
