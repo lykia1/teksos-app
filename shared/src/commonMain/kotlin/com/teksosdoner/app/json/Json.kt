@@ -69,6 +69,9 @@ class JSONObject() {
     }
 
     companion object {
+        // Objective-C'de NULL ayrılmış bir sözcük; iPhone tarafında farklı adla görünür
+        @OptIn(kotlin.experimental.ExperimentalObjCName::class)
+        @kotlin.native.ObjCName("bosDeger")
         val NULL: Any = Bos
         fun quote(s: String): String = StringBuilder().also { yaziEkle(it, s) }.toString()
     }
